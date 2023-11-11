@@ -1,95 +1,11 @@
-// import React, { useState } from 'react';
-
-// const SchedulingComponent = () => {
-//     const [selectedDate, setSelectedDate] = useState(new Date());
-//     const [selectedTime, setSelectedTime] = useState('');
-
-//     const handleDateChange = (date) => {
-//         setSelectedDate(date);
-//         // You may want to implement logic for fetching available time slots for the selected date
-//     };
-
-//     const handleTimeSelection = (time) => {
-//         setSelectedTime(time);
-//         // You can add further logic here based on the selected time
-//     };
-
-//     const handleScheduleAppointment = () => {
-//         // Implement logic for scheduling the appointment, e.g., send data to a server
-//         console.log('Appointment scheduled:', {
-//             date: selectedDate.toDateString(),
-//             time: selectedTime,
-//         });
-
-//         // Reset state after scheduling
-//         setSelectedDate(new Date());
-//         setSelectedTime('');
-//     };
-
-//     const handlePostRequest = () => {
-//         fetch('https://fastapi-backend-fl6pmqzvxq-uc.a.run.app/matches/users')
-//             .then(response => response.json())
-//             .then(data => console.log(data));
-
-//     }
-//     return (
-//         <div>
-//             <h1>Schedule an Appointment</h1>
-
-//             <div>
-//                 <label>Select Date:</label>
-//                 <input
-//                     type="date"
-//                     value={selectedDate.toISOString().split('T')[0]}
-//                     onChange={(e) => handleDateChange(new Date(e.target.value))}
-//                 />
-//             </div>
-
-//             {/* Display available time slots (you may fetch this dynamically) */}
-//             <div>
-//                 <label>Select Time:</label>
-//                 <select value={selectedTime} onChange={(e) => handleTimeSelection(e.target.value)}>
-//                     <option value="">Select Time</option>
-// <option value="08:00 AM">08:00 AM</option>
-// <option value="09:00 AM">09:00 AM</option>
-// <option value="10:00 AM">10:00 AM</option>
-// <option value="11:00 AM">11:00 AM</option>
-// <option value="12:00 PM">12:00 PM</option>
-// <option value="01:00 PM">01:00 PM</option>
-// <option value="02:00 PM">02:00 PM</option>
-// <option value="03:00 PM">03:00 PM</option>
-// <option value="04:00 PM">04:00 PM</option>
-// <option value="05:00 PM">05:00 PM</option>
-// <option value="06:00 PM">06:00 PM</option>
-// <option value="07:00 PM">07:00 PM</option>
-// <option value="08:00 PM">08:00 PM</option>
-// <option value="09:00 PM">09:00 PM</option>
-// <option value="10:00 PM">10:00 PM</option>
-//                 </select>
-//             </div>
-
-//             <button onClick={handleScheduleAppointment} disabled={!selectedDate || !selectedTime}>
-//                 Schedule Appointment
-//             </button>
-//             <button onClick={handlePostRequest}>
-//                 Fetch
-//             </button>
-//         </div>
-//     );
-// };
-
-// export default SchedulingComponent;
-
-
 import React, { useState } from 'react';
 import { useAuth0 } from "@auth0/auth0-react";
 
-let currentDate = new Date()
-const SchedulingComponent = () => {
+const SchedulingComponent = ({ courtNumber, bookedTimes, onBooking }) => {
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [selectedTime, setSelectedTime] = useState('');
     const { user } = useAuth0();
-
+    let currentDate = new Date()
     const handleDateChange = (date) => {
         setSelectedDate(date);
         // You may want to implement logic for fetching available time slots for the selected date
@@ -108,17 +24,20 @@ const SchedulingComponent = () => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-
-                    "booked": false,
-                    "email": user.email,
-                    "name": user.name
-
+                    booked: false,
+                    email: user.email,
+                    name: user.name,
+                    date: selectedDate.toISOString().split('T')[0],
+                    time: selectedTime,
                 }),
             });
 
             if (response.ok) {
                 // Request was successful
                 console.log('Appointment scheduled successfully');
+                console.log(selectedTime)
+                // Notify parent component about the booking
+                onBooking(courtNumber, `${selectedDate.toISOString().split('T')[0]} ${selectedTime}`);
             } else {
                 // Handle errors
                 console.error('Error scheduling appointment');
@@ -142,11 +61,9 @@ const SchedulingComponent = () => {
         }
     };
 
-
-
     return (
         <div>
-            <h1>Schedule an Appointment</h1>
+            <h1>Schedule an Appointment for Court Number {courtNumber}</h1>
             <div>
                 <label>Select Date:</label>
                 <input
@@ -162,28 +79,27 @@ const SchedulingComponent = () => {
                 <select value={selectedTime} onChange={(e) => handleTimeSelection(e.target.value)}>
                     <option value="">Select Time</option>
                     {/* ... (time options) */}
-                    <option value="08:00 AM">08:00 AM</option>
-                    <option value="09:00 AM">09:00 AM</option>
-                    <option value="10:00 AM">10:00 AM</option>
-                    <option value="11:00 AM">11:00 AM</option>
-                    <option value="12:00 PM">12:00 PM</option>
-                    <option value="01:00 PM">01:00 PM</option>
-                    <option value="02:00 PM">02:00 PM</option>
-                    <option value="03:00 PM">03:00 PM</option>
-                    <option value="04:00 PM">04:00 PM</option>
-                    <option value="05:00 PM">05:00 PM</option>
-                    <option value="06:00 PM">06:00 PM</option>
-                    <option value="07:00 PM">07:00 PM</option>
-                    <option value="08:00 PM">08:00 PM</option>
-                    <option value="09:00 PM">09:00 PM</option>
-                    <option value="10:00 PM">10:00 PM</option>
+                    <option value="8">08:00 AM</option>
+                    <option value="9">09:00 AM</option>
+                    <option value="10">10:00 AM</option>
+                    <option value="11">11:00 AM</option>
+                    <option value="12">12:00 PM</option>
+                    <option value="13">01:00 PM</option>
+                    <option value="14">02:00 PM</option>
+                    <option value="15">03:00 PM</option>
+                    <option value="16">04:00 PM</option>
+                    <option value="17">05:00 PM</option>
+                    <option value="18">06:00 PM</option>
+                    <option value="19">07:00 PM</option>
+                    <option value="20">08:00 PM</option>
+                    <option value="21">09:00 PM</option>
+                    <option value="22">10:00 PM</option>
                 </select>
             </div>
 
-            <button onClick={handleScheduleAppointment} disabled={!selectedDate || !selectedTime}>
+            <button onClick={handleScheduleAppointment} disabled={!selectedDate || !selectedTime || bookedTimes.includes(`${selectedDate.toISOString().split('T')[0]} ${selectedTime}`)}>
                 Schedule Appointment
             </button>
-            <button onClick={handlePostRequest}>Fetch</button>
         </div>
     );
 };
