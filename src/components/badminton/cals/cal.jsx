@@ -142,39 +142,6 @@ const SchedulingComponent = () => {
         }
     };
 
-    const handleBooking = async () => {
-        try {
-            const response = await fetch('https://fastapi-backend-fl6pmqzvxq-uc.a.run.app/matches/bookings/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    "court": 1,
-                    "end": 8,
-                    "start": 7,
-                    "day": currentDate.getDay(),
-                    "month": currentDate.getMonth(),
-                    "year": currentDate.getFullYear(),
-                }),
-            });
-
-            if (response.ok) {
-                // Request was successful
-                console.log('Appointment scheduled successfully');
-            } else {
-                // Handle errors
-                console.error('Error scheduling appointment');
-            }
-        } catch (error) {
-            console.error('Error:', error);
-        }
-
-        // Reset state after scheduling
-        setSelectedDate(new Date());
-        setSelectedTime('');
-    };
-
 
 
     return (
