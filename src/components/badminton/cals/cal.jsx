@@ -2,11 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useAuth0 } from "@auth0/auth0-react";
 
 const SchedulingComponent = ({ courtNumber, bookedTimes, onBooking }) => {
+    const { user } = useAuth0() || {};
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [selectedTime, setSelectedTime] = useState('');
     const [userdata, setuserdata] = useState("")
     const [bookingdata, setBookingData] = useState("")
-    const { user } = useAuth0() || {};
     const url1 = "https://fastapi-backend-fl6pmqzvxq-uc.a.run.app"
     const url2 = "http://127.0.0.1:8000"
     const user_email = user.email
@@ -38,8 +38,18 @@ const SchedulingComponent = ({ courtNumber, bookedTimes, onBooking }) => {
             { value: '10:00 PM', hour: 22 },
         ];
 
+        let alreadybooked = getTodaysBookings(
+            (selectedDate.getDate()),
+            (selectedDate.getMonth()),
+            (selectedDate.getFullYear()),
+            parseInt(courtNumber)
+        );
+
+        console.log(alreadybooked);
+
         // Filter the time options based on the current time
-        const filteredTimes = timeOptions.filter(option => {
+        let filteredTimes = timeOptions.filter(option => {
+
             if (selectedDate.getDate() + 1 === new Date().getDate()) {
                 // If it's the current date, only include times after the current time
                 console.log("current date")
@@ -49,10 +59,22 @@ const SchedulingComponent = ({ courtNumber, bookedTimes, onBooking }) => {
                 console.log('youve reached here')
                 return true;
             }
-        });
 
+        });
+        console.log(alreadybooked)
+        const temp = filteredTimes.map(time => time.hour)
+        console.log(temp)
+        const newFilteredTimes = filteredTimes.filter(option => {
+            console.log(option.hour)
+            if (alreadybooked.some(item => item === option.hour)) {
+                console.log("filtered out" + option.hour)
+                return false;
+            }
+            return true;
+        })
+        console.log(newFilteredTimes)
         // Set the available times
-        setAvailableTimes(filteredTimes);
+        setAvailableTimes(newFilteredTimes);
     }, [selectedDate]);
 
     const handleDateChange = (date) => {
@@ -64,6 +86,8 @@ const SchedulingComponent = ({ courtNumber, bookedTimes, onBooking }) => {
         setSelectedTime(time);
         // You can add further logic here based on the selected time
     };
+
+
 
 
     useEffect(() => {
@@ -94,7 +118,6 @@ const SchedulingComponent = ({ courtNumber, bookedTimes, onBooking }) => {
                     start: parseInt(selectedTime),
                     end: parseInt(selectedTime) + 1,
                     court: courtNumber,
-
                 }),
             });
             if (response.ok) {
@@ -128,6 +151,50 @@ const SchedulingComponent = ({ courtNumber, bookedTimes, onBooking }) => {
         const data = p.json()
         setBookingData(data)
     }
+
+
+
+
+    const getTodaysBookings = (day, month, year, courtNumber) => {
+        let booked_times = [];
+        console.log(`sending a request with day=${day}&month=${month}&year=${year}`)
+        fetch(`${url2}/matches/bookings/daily?day=${day}&month=${month}&year=${year}`).then(response => {
+            if (!response.ok) {
+                throw new Error('Getting todays booking was NOT okay');
+            }
+            return response.json();
+        }).then(data => {
+            data.bookings.forEach((booking) => {
+                if ((booking.day === day) && (booking.court === courtNumber) && (booking.month === month) && (booking.year === year)) {
+                    booked_times.push(booking.start);
+                }
+            })
+        })
+        console.log(booked_times)
+        return booked_times;
+    };
+
+
+
+
+    const getTodaysBookings = (day, month, year, courtNumber) => {
+        let booked_times = [];
+        console.log(`sending a request with day=${day}&month=${month}&year=${year}`)
+        fetch(`${url2}/matches/bookings/daily?day=${day}&month=${month}&year=${year}`).then(response => {
+            if (!response.ok) {
+                throw new Error('Getting todays booking was NOT okay');
+            }
+            return response.json();
+        }).then(data => {
+            data.bookings.forEach((booking) => {
+                if ((booking.day === day) && (booking.court === courtNumber) && (booking.month === month) && (booking.year === year)) {
+                    booked_times.push(booking.start);
+                }
+            })
+        })
+        console.log(booked_times)
+        return booked_times;
+    };
 
 
 
