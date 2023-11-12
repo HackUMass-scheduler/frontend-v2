@@ -6,11 +6,12 @@ const SchedulingComponent = ({ courtNumber, bookedTimes, onBooking }) => {
     const [selectedTime, setSelectedTime] = useState('');
     const [userdata, setuserdata] = useState("")
     const [bookingdata, setBookingData] = useState("")
+    const { user } = useAuth0() || {};
     const url1 = "https://fastapi-backend-fl6pmqzvxq-uc.a.run.app"
     const url2 = "http://127.0.0.1:8000"
     const user_email = user.email
     const [availableTimes, setAvailableTimes] = useState([]);
-    const { user } = useAuth0() || {};
+
     const currentDate = new Date()
 
     useEffect(() => {
@@ -64,6 +65,21 @@ const SchedulingComponent = ({ courtNumber, bookedTimes, onBooking }) => {
         // You can add further logic here based on the selected time
     };
 
+
+    useEffect(() => {
+        const getUser = async () => {
+            const response = await fetch(`${url2}/matches/users/${user_email}`)
+            if (response.ok) {
+                const data = await response.json()
+                setuserdata(data)
+            } else {
+                console.log(response.json)
+            }
+        }
+
+        getUser()
+    }, [userdata])
+
     const handleScheduleAppointment = async () => {
         try {
             const response = await fetch(`${url2}/matches/bookings/`, {
@@ -87,15 +103,11 @@ const SchedulingComponent = ({ courtNumber, bookedTimes, onBooking }) => {
                 console.log('Appointment scheduled successfully');
 
                 console.log(selectedTime)
-                // await getBookingID(response)
-                await getUser()
-
+                await getBookingID(response).then(console.log(bookingdata)).then(console.log("success!"))
                 console.log(availableTimes)
-
-                // Notify parent component about the booking
                 onBooking(courtNumber, `${selectedDate.toISOString().split('T')[0]} ${selectedTime}`);
-                // console.log(bookingdata)
                 console.log(userdata)
+
 
             } else {
                 // Handle errors
@@ -105,25 +117,20 @@ const SchedulingComponent = ({ courtNumber, bookedTimes, onBooking }) => {
             console.error('Error:', error);
         }
 
+
+
         // Reset state after scheduling
         setSelectedDate(new Date());
         setSelectedTime('');
     };
 
     const getBookingID = async (p) => {
-        const data = await p.json()
+        const data = p.json()
         setBookingData(data)
     }
 
-    const getUser = async () => {
-        const response = await fetch(`${url2}/matches/users/${user_email}`)
-        if (response.ok) {
-            const data = await response.json()
-            setuserdata(data)
-        } else {
-            console.log(response.json)
-        }
-    }
+
+
 
     const handleUpdateUser = async (booking_id) => {
 
@@ -159,11 +166,6 @@ const SchedulingComponent = ({ courtNumber, bookedTimes, onBooking }) => {
         }
     };
 
-    const finalfunc = async () => {
-        await handleScheduleAppointment()
-        // await handleUpdateUser()
-    }
-
 
     return (
         <div className=' animate__animated animate__lightSpeedInLeft'>
@@ -190,7 +192,7 @@ const SchedulingComponent = ({ courtNumber, bookedTimes, onBooking }) => {
                 </select>
             </div>
 
-            <button onClick={finalfunc} disabled={!selectedDate || !selectedTime || bookedTimes.includes(`${selectedDate.toISOString().split('T')[0]} ${selectedTime}`)}>
+            <button onClick={handleScheduleAppointment} disabled={!selectedDate || !selectedTime || bookedTimes.includes(`${selectedDate.toISOString().split('T')[0]} ${selectedTime}`)}>
                 Schedule Appointment
             </button>
         </div>
