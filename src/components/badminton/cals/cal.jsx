@@ -7,11 +7,12 @@ const SchedulingComponent = ({ courtNumber, bookedTimes, onBooking }) => {
     const [selectedTime, setSelectedTime] = useState('');
     const [userdata, setuserdata] = useState("")
     const [bookingdata, setBookingData] = useState("")
+    const [bookings, setBookings] = useState([]);
     const url1 = "https://fastapi-backend-fl6pmqzvxq-uc.a.run.app"
     const url2 = "http://127.0.0.1:8000"
     const user_email = user.email
+    const alreadyBooked = useState([])
     const [availableTimes, setAvailableTimes] = useState([]);
-
     const currentDate = new Date()
 
     useEffect(() => {
@@ -38,18 +39,21 @@ const SchedulingComponent = ({ courtNumber, bookedTimes, onBooking }) => {
             { value: '10:00 PM', hour: 22 },
         ];
 
-        let alreadybooked = getTodaysBookings(
-            (selectedDate.getDate()),
-            (selectedDate.getMonth()),
+        getTodaysBookings(
+            (selectedDate.getDate() + 1),
+            (selectedDate.getMonth() + 1),
             (selectedDate.getFullYear()),
             parseInt(courtNumber)
         );
 
-        console.log(alreadybooked);
+        // while (bookings.bookings === undefined) {
+        //     setTimeout(function () {
+        //         console.log('hello');
+        //     }, 3000)
+        // }
 
         // Filter the time options based on the current time
         let filteredTimes = timeOptions.filter(option => {
-
             if (selectedDate.getDate() + 1 === new Date().getDate()) {
                 // If it's the current date, only include times after the current time
                 console.log("current date")
@@ -59,21 +63,18 @@ const SchedulingComponent = ({ courtNumber, bookedTimes, onBooking }) => {
                 console.log('youve reached here')
                 return true;
             }
-
         });
-        console.log(alreadybooked)
-        const temp = filteredTimes.map(time => time.hour)
-        console.log(temp)
-        const newFilteredTimes = filteredTimes.filter(option => {
-            console.log(option.hour)
-            if (alreadybooked.some(item => item === option.hour)) {
-                console.log("filtered out" + option.hour)
-                return false;
-            }
-            return true;
-        })
-        console.log(newFilteredTimes)
-        // Set the available times
+
+        // // Set the available times
+        // const newFilteredTimes = filteredTimes.filter((time) => {
+        //     console.log(bookings)
+        // })
+        console.log(bookings.bookings)
+        // const newbookings = bookings.bookings?.filter(x => x.start % 1 === 0)
+        // console.log(newbookings)
+        const newFilteredTimes = filteredTimes.filter(time =>
+            bookings.bookings?.some(x => x.start !== time.hour)
+        )
         setAvailableTimes(newFilteredTimes);
     }, [selectedDate]);
 
@@ -92,7 +93,7 @@ const SchedulingComponent = ({ courtNumber, bookedTimes, onBooking }) => {
 
     useEffect(() => {
         const getUser = async () => {
-            const response = await fetch(`${url2}/matches/users/${user_email}`)
+            const response = await fetch(`${url2}/matches/users/${user_email}/`)
             if (response.ok) {
                 const data = await response.json()
                 setuserdata(data)
@@ -102,7 +103,7 @@ const SchedulingComponent = ({ courtNumber, bookedTimes, onBooking }) => {
         }
 
         getUser()
-    }, [userdata])
+    }, [user_email])
 
     const handleScheduleAppointment = async () => {
         try {
@@ -112,8 +113,8 @@ const SchedulingComponent = ({ courtNumber, bookedTimes, onBooking }) => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    day: selectedDate.getDate(),
-                    month: selectedDate.getMonth(),
+                    day: selectedDate.getDate() + 1,
+                    month: selectedDate.getMonth() + 1,
                     year: selectedDate.getFullYear(),
                     start: parseInt(selectedTime),
                     end: parseInt(selectedTime) + 1,
@@ -121,17 +122,29 @@ const SchedulingComponent = ({ courtNumber, bookedTimes, onBooking }) => {
                 }),
             });
             if (response.ok) {
-
+                // const getBooking = async () => {
+                //     const params = new URLSearchParams();
+                //     params.append("day", selectedDate.getDate())
+                //     params.append("month", selectedDate.getMonth())
+                //     params.append("year", selectedDate.getYear())
+                //     params.append("start", parseInt(selectedTime))
+                //     params.append("end", parseInt(selectedTime) + 1)
+                //     params.append("court", courtNumber)
+                //     const response = await fetch(`${url2}/matches/bookings/${params.toString()}/`)
+                //     if (response.ok) {
+                //         const data = await response.json()
+                //         setBookingData(data)
+                //     } else {
+                //         console.log(response.json)
+                //     }
+                // }
+                // getBooking()
                 // Request was successful
                 console.log('Appointment scheduled successfully');
-
                 console.log(selectedTime)
-                await getBookingID(response).then(console.log(bookingdata)).then(console.log("success!"))
-                console.log(availableTimes)
                 onBooking(courtNumber, `${selectedDate.toISOString().split('T')[0]} ${selectedTime}`);
                 console.log(userdata)
-
-
+                console.log(bookingdata)
             } else {
                 // Handle errors
                 console.error('Error scheduling appointment');
@@ -147,28 +160,14 @@ const SchedulingComponent = ({ courtNumber, bookedTimes, onBooking }) => {
         setSelectedTime('');
     };
 
-    const getBookingID = async (p) => {
-        const data = p.json()
-        setBookingData(data)
-    }
 
-    const getTodaysBookings = (day, month, year, courtNumber) => {
-        let booked_times = [];
-        console.log(`sending a request with day=${day}&month=${month}&year=${year}`)
-        fetch(`${url2}/matches/bookings/daily?day=${day}&month=${month}&year=${year}`).then(response => {
+    const getTodaysBookings = async (day, month, year, courtNumber) => {
+        await fetch(`${url2}/matches/bookings/daily?day=${day}&month=${month}&year=${year}&court=${courtNumber}`).then(response => {
             if (!response.ok) {
                 throw new Error('Getting todays booking was NOT okay');
             }
             return response.json();
-        }).then(data => {
-            data.bookings.forEach((booking) => {
-                if ((booking.day === day) && (booking.court === courtNumber) && (booking.month === month) && (booking.year === year)) {
-                    booked_times.push(booking.start);
-                }
-            })
-        })
-        console.log(booked_times)
-        return booked_times;
+        }).then(data => setBookings(data))
     };
 
 
@@ -224,10 +223,13 @@ const SchedulingComponent = ({ courtNumber, bookedTimes, onBooking }) => {
             {/* Display available time slots (you may fetch this dynamically) */}
             <div>
                 <label>Select Time:</label>
-                <select value={selectedTime} onChange={(e) => handleTimeSelection(e.target.value)}>
+                <select value={selectedTime} onChange={(e) => {
+                    console.log(e.target);
+                    handleTimeSelection(e.target.value)
+                }}>
                     <option value="">Select Time</option>
                     {availableTimes.map((option, index) => (
-                        <option key={index} value={option.value}>
+                        <option key={index} value={option.hour}>
                             {option.value}
                         </option>
                     ))}
