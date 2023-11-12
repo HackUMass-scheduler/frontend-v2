@@ -152,31 +152,6 @@ const SchedulingComponent = ({ courtNumber, bookedTimes, onBooking }) => {
         setBookingData(data)
     }
 
-
-
-
-    const getTodaysBookings = (day, month, year, courtNumber) => {
-        let booked_times = [];
-        console.log(`sending a request with day=${day}&month=${month}&year=${year}`)
-        fetch(`${url2}/matches/bookings/daily?day=${day}&month=${month}&year=${year}`).then(response => {
-            if (!response.ok) {
-                throw new Error('Getting todays booking was NOT okay');
-            }
-            return response.json();
-        }).then(data => {
-            data.bookings.forEach((booking) => {
-                if ((booking.day === day) && (booking.court === courtNumber) && (booking.month === month) && (booking.year === year)) {
-                    booked_times.push(booking.start);
-                }
-            })
-        })
-        console.log(booked_times)
-        return booked_times;
-    };
-
-
-
-
     const getTodaysBookings = (day, month, year, courtNumber) => {
         let booked_times = [];
         console.log(`sending a request with day=${day}&month=${month}&year=${year}`)
