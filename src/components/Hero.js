@@ -3,7 +3,7 @@ import { useAuth0 } from "@auth0/auth0-react";
 // import logo from "../assets/logo.svg";
 import 'animate.css';
 import umass from '../assets/umass.png';
-
+const id = ""
 const Hero = () => {
   const { user, isAuthenticated } = useAuth0();
   return (
@@ -20,7 +20,7 @@ const Hero = () => {
           <h1 className="mb-4">UMass Badminton Portal</h1>
         </div>
       )}
-      <div>{isAuthenticated ? "Yes" : "No"}</div>
+      <div>{isAuthenticated ? addUser(user) : "No"}</div>
       {/* <div>{user.name}</div> */}
       {isAuthenticated && (
         <h1>
@@ -46,3 +46,29 @@ const Hero = () => {
   )
 }
 export default Hero;
+
+const addUser = (user) => {
+  try {
+    const response = fetch('https://fastapi-backend-fl6pmqzvxq-uc.a.run.app/matches/users/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name: user.name,
+        email: user.email,
+      }),
+    });
+
+    if (response.ok) {
+      // Request was successful
+      console.log('Human created successfully');
+      console.log(response.json.name)
+    } else {
+      // Handle errors
+      console.error('Error scheduling appointment');
+    }
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
