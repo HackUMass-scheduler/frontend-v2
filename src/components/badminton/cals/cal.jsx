@@ -46,6 +46,7 @@ const SchedulingComponent = ({ courtNumber, bookedTimes, onBooking }) => {
             parseInt(courtNumber)
         );
 
+
         // while (bookings.bookings === undefined) {
         //     setTimeout(function () {
         //         console.log('hello');
@@ -66,17 +67,15 @@ const SchedulingComponent = ({ courtNumber, bookedTimes, onBooking }) => {
         });
 
         // // Set the available times
-        // const newFilteredTimes = filteredTimes.filter((time) => {
-        //     console.log(bookings)
-        // })
-        console.log(bookings.bookings)
+
+        console.log(bookings)
         // const newbookings = bookings.bookings?.filter(x => x.start % 1 === 0)
         // console.log(newbookings)
         const newFilteredTimes = filteredTimes.filter(time =>
-            bookings.bookings?.some(x => x.start !== time.hour)
+            bookings.bookings?.length === 0 ? true : bookings.bookings?.some(x => x.start !== time.hour)
         )
         setAvailableTimes(newFilteredTimes);
-    }, [selectedDate]);
+    }, [selectedDate, bookings, courtNumber]);
 
     const handleDateChange = (date) => {
         setSelectedDate(date);
@@ -119,6 +118,7 @@ const SchedulingComponent = ({ courtNumber, bookedTimes, onBooking }) => {
                     start: parseInt(selectedTime),
                     end: parseInt(selectedTime) + 1,
                     court: courtNumber,
+                    user: user_email,
                 }),
             });
             if (response.ok) {
@@ -143,6 +143,7 @@ const SchedulingComponent = ({ courtNumber, bookedTimes, onBooking }) => {
                 console.log('Appointment scheduled successfully');
                 console.log(selectedTime)
                 onBooking(courtNumber, `${selectedDate.toISOString().split('T')[0]} ${selectedTime}`);
+
                 console.log(userdata)
                 console.log(bookingdata)
             } else {
