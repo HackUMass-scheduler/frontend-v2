@@ -1,11 +1,8 @@
 import React, { useState } from 'react'
-import 'react-calendar/dist/Calendar.css';
 import './index.css'
-import 'animate.css';
 import bad from '../badminton/badminton.jpg'
 // import Calendly from './calendly.jsx';
 import SchedulingComponent from './cals/cal';
-import 'animate.css';
 
 const BadmintonScene = () => {
     const [showCalendar1, setShowCalendar1] = useState(false);
@@ -42,7 +39,7 @@ const BadmintonScene = () => {
 
     return (
         <div className="container">
-            <h1 className=' animate__animated animate__lightSpeedInLeft'>Badminton Courts</h1>
+            <h1 className='animate__animated animate__lightSpeedInLeft'>Badminton Courts</h1>
             <div style={{ display: 'flex', justifyContent: 'space-around' }}>
             </div>
             <div className="court animate__animated animate__zoomInUp" style={{ display: 'flex', justifyContent: 'space-around', marginTop: '20px' }}>
